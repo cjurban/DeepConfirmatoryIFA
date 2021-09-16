@@ -45,7 +45,7 @@ class MIRTVAE(nn.Module):
             A                     (Tensor): Matrix implementing linear constraints.
             b                     (Tensor): Vector implementing linear constraints.
             device                (str): String specifying whether to run on CPU or GPU.
-            correlated_factors    (Boolean): Whether or not factors should be correlated.
+            correlated_factors    (list of int): List of correlated factors.
         """
         super(MIRTVAE, self).__init__()
 
@@ -160,14 +160,14 @@ class MIRTVAEClass(BaseClass):
                  Q = None,
                  A = None,
                  b = None,
-                 correlated_factors = False,
+                 correlated_factors = [],
                  inf_grad_estimator = "dreg",
                  steps_anneal = 0):
         """
         New args:
             n_cats                (list of int): List containing number of categories for each observed variable.
             Q                     (Tensor): Matrix with binary entries indicating measurement structure.
-            correlated_factors    (Boolean): Whether or not factors should be correlated.
+            correlated_factors    (list of int): List of correlated factors.
             inf_grad_estimator    (str): Inference model gradient estimator.
                                          "iwae" = IWAE, "dreg" = DReG.
         """
@@ -237,7 +237,7 @@ class MIRTVAEClass(BaseClass):
         log_px_z = (-x * recon_x.log()).sum(dim = -1, keepdim = True)
         
         # Compute log p(z).
-        if self.correlated_factors:
+        if self.correlated_factors != []:
             log_pz = dist.MultivariateNormal(torch.zeros_like(z).to(self.device),
                                              scale_tril = self.model.cholesky.weight()).log_prob(z).unsqueeze(-1)
             

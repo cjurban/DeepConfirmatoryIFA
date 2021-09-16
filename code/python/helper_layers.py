@@ -41,7 +41,7 @@ class Spherical(nn.Module):
         """
         Args:
             dim                (int): Number of rows and columns.
-            correlated_factors (Boolean): Whether or not factors should be correlated.
+            correlated_factors (list of int): List of correlated factors.
             device             (str): String specifying whether to run on CPU or GPU.
         """
         super(Spherical, self).__init__()
@@ -50,14 +50,20 @@ class Spherical(nn.Module):
         self.correlated_factors = correlated_factors
         self.device = device
         
-        if self.correlated_factors:
+        if self.correlated_factors != []:
             n_elts = int((self.dim * (self.dim + 1)) / 2)
             self.theta = nn.Parameter(torch.zeros([n_elts]))
             diag_idxs = torch.from_numpy(np.cumsum(np.arange(1, self.dim + 1)) - 1)
             self.theta.data[diag_idxs] = np.log(np.pi / 2)
+            
+            # For constraining specific covariances to zero.
+            tril_idxs = torch.tril_indices(row = self.dim - 1, col = self.dim - 1, offset = 0)
+            uncorrelated_factors = [factor for factor in np.arange(self.dim).tolist() if factor not in self.correlated_factors]
+            self.uncorrelated_tril_idxs = tril_idxs[:, sum((tril_idxs[1,:] == factor) + (tril_idxs[0,:] == factor - 1) for
+                                                           factor in uncorrelated_factors) > 0]
         
     def weight(self):
-        if self.correlated_factors:
+        if self.correlated_factors != []:
             tril_idxs = torch.tril_indices(row = self.dim, col = self.dim, offset = 0)
             theta_mat = torch.zeros(self.dim, self.dim).to(self.device)
             theta_mat[tril_idxs[0], tril_idxs[1]] = self.theta
@@ -70,6 +76,9 @@ class Spherical(nn.Module):
 
             # Constrain variances to one.
             l_mat[:, 0] = torch.ones(l_mat.size(0)).to(self.device)
+            
+            # Constrain specific covariances to zero.
+            l_mat[1:, 1:].data[self.uncorrelated_tril_idxs[0], self.uncorrelated_tril_idxs[1]] = np.pi / 2
         
             return cart2spher(l_mat)
         else:
@@ -79,7 +88,7 @@ class Spherical(nn.Module):
         return F.linear(x, self.weight())
     
     def cov(self):
-        if self.correlated_factors:
+        if self.correlated_factors != []:
             weight = self.weight()
 
             return torch.matmul(weight, weight.t())
@@ -87,7 +96,7 @@ class Spherical(nn.Module):
             return torch.eye(self.dim).to(self.device)
     
     def inv_cov(self):
-        if self.correlated_factors:
+        if self.correlated_factors != []:
             return torch.cholesky_solve(torch.eye(self.dim).to(self.device),
                                         self.weight())
         else:
