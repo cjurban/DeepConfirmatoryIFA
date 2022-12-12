@@ -1,6 +1,6 @@
 # Deep Learning for Confirmatory Item Factor Analysis
 
-Code to reproduce the experiments in Urban, C. J. & Bauer, D. J. (preprint).Deep learning-based estimation and goodness-of-fit for large-scale confirmatory item factor analysis.
+Code to reproduce the experiments in Urban, C. J. & Bauer, D. J. (preprint). Deep learning-based estimation and goodness-of-fit for large-scale confirmatory item factor analysis.
 
 ## How to Use
 
