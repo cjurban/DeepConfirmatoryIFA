@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 #
-# Code author: Christopher J. Urban
-# Start date: 2/24/2020
-# Last modified: 2/24/2021
+# Code Author: Christopher J. Urban
+# Affil.: L. L. Thurstone Psychometric Laboratory in the
+#         Dept. of Psychology and Neuroscience, UNC-Chapel Hill
+# E-mail: cjurban@live.unc.edu
 #
 # Purpose: A base class for VAE-type models with functions for model fitting
 # and evaluation as well as saving and loading fitted models.
